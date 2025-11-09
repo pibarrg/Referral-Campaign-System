@@ -4,25 +4,27 @@ const { Pool } = pkg;
 
 const app = express();
 
-// conexión a PostgreSQL (usa las variables del .env)
-const pool = new Pool({
-  host: process.env.DB_HOST || "db",
-  port: process.env.DB_PORT ? Number(process.env.DB_PORT) : 5432,
-  user: process.env.DB_USER || "app",
-  password: process.env.DB_PASSWORD || "app",
-  database: process.env.DB_NAME || "referrals",
-});
+// --- RUTAS PRIMERO ---
 
-// ruta de healthcheck
-app.get("/health", (_req, res) => res.json({ ok: true }));
+// Healthcheck (lo usa Docker y tú)
+app.get("/api/health", (_req, res) => res.json({ ok: true }));
 
-// ruta de test básico
-app.get("/test", (_req, res) => {
+// Ping de prueba
+app.get("/api/test", (_req, res) => {
   res.json({ message: "API funcionando" });
 });
 
-// ✅ nueva ruta: devuelve usuarios desde Postgres
-app.get("/users", async (_req, res) => {
+// DB (Postgres vía variables de entorno)
+const pool = new Pool({
+  user: process.env.DB_USER || "app",
+  password: process.env.DB_PASSWORD || "app",
+  host: process.env.DB_HOST || "db",
+  port: Number(process.env.DB_PORT || 5432),
+  database: process.env.DB_NAME || "referrals",
+});
+
+// Lista de usuarios
+app.get("/api/users", async (_req, res) => {
   try {
     const { rows } = await pool.query(
       "SELECT id, name, email FROM users ORDER BY id"
@@ -32,6 +34,18 @@ app.get("/users", async (_req, res) => {
     console.error(err);
     res.status(500).json({ error: "db_error" });
   }
+});
+
+// Página raíz (informativa)
+app.get("/", (_req, res) => {
+  res
+    .type("text/plain")
+    .send("API OK. Endpoints: /api/health, /api/test, /api/users");
+});
+
+// --- 404 SIEMPRE AL FINAL ---
+app.use((_req, res) => {
+  res.status(404).json({ error: "not_found" });
 });
 
 app.listen(5000, () => console.log("API listening on :5000"));
