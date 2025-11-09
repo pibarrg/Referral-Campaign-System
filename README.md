@@ -19,15 +19,16 @@ Frontend: http://localhost:3000
 API directa (modo desarrollo): http://localhost:5000
 
 Endpoints de prueba
+
 API directa (puerto 5000)
 
-GET http://localhost:5000/health → {"ok":true}
-GET http://localhost:5000/api/test → {"message":"API funcionando"}
+- GET http://localhost:5000/health → {"ok":true}
+- GET http://localhost:5000/api/test → {"message":"API funcionando"}
 
 A través del frontend (puerto 3000)
 
-GET http://localhost:3000/api/health → {"ok":true}
-GET http://localhost:3000/api/test → {"message":"API funcionando"}
+- GET http://localhost:3000/api/health → {"ok":true}
+- GET http://localhost:3000/api/test → {"message":"API funcionando"}
 
 Variables de entorno
 
@@ -72,9 +73,9 @@ Referral-Campaign-System/
 
 Notas
 
-Este proyecto es un scaffold básico para desarrollo local.
-Puedes extenderlo con endpoints reales, persistencia, autenticación, tests y CI/CD.
-Ideal para probar integraciones entre servicios (API + base de datos + cache + proxy).
+- Este proyecto es un scaffold básico para desarrollo local.
+- Puedes extenderlo con endpoints reales, persistencia, autenticación, tests y CI/CD.
+- Ideal para probar integraciones entre servicios (API + base de datos + cache + proxy).
 
 Próximos pasos sugeridos
 
