@@ -1,1 +1,75 @@
-﻿<!DOCTYPE html><html><body><h1>Frontend OK</h1></body></html>
+﻿<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>Referral App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 40px; }
+      h1 { margin-top: 0; }
+      table { border-collapse: collapse; width: 520px; }
+      th, td { border: 1px solid #ddd; padding: 8px; }
+      th { background: #f5f5f5; text-align: left; }
+      .ok { color: #0a0; font-weight: 600; }
+      .err { color: #a00; font-weight: 600; }
+      .muted { color: #666; }
+      #status { margin-bottom: 16px; }
+      button { padding: 6px 10px; }
+    </style>
+  </head>
+  <body>
+    <h1>Frontend</h1>
+
+    <div id="status" class="muted">Probando API…</div>
+    <button id="reload">Recargar</button>
+
+    <h2>Usuarios</h2>
+    <table id="users">
+      <thead>
+        <tr><th>ID</th><th>Nombre</th><th>Email</th></tr>
+      </thead>
+      <tbody>
+        <tr><td colspan="3" class="muted">Cargando…</td></tr>
+      </tbody>
+    </table>
+
+    <script>
+      async function ping() {
+        const el = document.getElementById('status');
+        try {
+          const r = await fetch('/api/health');
+          const j = await r.json();
+          el.textContent = j.ok ? 'API OK' : 'API no OK';
+          el.className = j.ok ? 'ok' : 'err';
+        } catch (e) {
+          el.textContent = 'API caída';
+          el.className = 'err';
+        }
+      }
+
+      async function loadUsers() {
+        const tbody = document.querySelector('#users tbody');
+        tbody.innerHTML = '<tr><td colspan="3" class="muted">Cargando…</td></tr>';
+        try {
+          const r = await fetch('/api/users');
+          const users = await r.json();
+          if (!Array.isArray(users) || users.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="3" class="muted">Sin datos</td></tr>';
+            return;
+          }
+          tbody.innerHTML = users.map(u =>
+            `<tr><td>${u.id}</td><td>${u.name}</td><td>${u.email}</td></tr>`
+          ).join('');
+        } catch (e) {
+          tbody.innerHTML = '<tr><td colspan="3" class="err">Error consultando la API</td></tr>';
+        }
+      }
+
+      document.getElementById('reload').addEventListener('click', () => {
+        ping(); loadUsers();
+      });
+
+      ping(); loadUsers();
+    </script>
+  </body>
+</html>
