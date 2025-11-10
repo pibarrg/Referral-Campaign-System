@@ -12,28 +12,27 @@ Stack mínimo para desarrollo local con **Docker Compose**:
 ## Requisitos
 
 - Docker Desktop instalado y funcionando
+- Make (viene incluido en macOS/Linux, en Windows está en Git Bash o WSL)
 
 ---
 
 ## Arranque rápido
 
-```bash
 # 1) (Primera vez) crear .env a partir del ejemplo
 cp .env.example .env
 
-# 2) Construir/levantar
-docker compose up -d --build
+# 2) Construir y levantar
+make up
 
 # 3) Ver estado
-docker compose ps
+make ps
 
 ---
 
 URLs:
 
-Frontend: http://localhost:3000
-
-API directa (para depurar): http://localhost:5000
+- Frontend: http://localhost:3000
+- API directa (para depurar): http://localhost:5000
 
 ---
 
@@ -43,127 +42,111 @@ Vía Nginx (recomendado)
 
 GET http://localhost:3000/api/health → {"ok":true}
 GET http://localhost:3000/api/test → {"message":"API funcionando"}
-GET http://localhost:3000/api/users → lista con 2 usuarios seed
+GET http://localhost:3000/api/users → [{"id":1,"name":"Patricio Ibarra","email":"patricio@example.com"}, {"id":2,"name":"Natalia Rud","email":"natalia@example.com"}]
 
 API directa (útil para depurar)
 
 GET http://localhost:5000/api/health → {"ok":true}
 GET http://localhost:5000/api/test → {"message":"API funcionando"}
-GET http://localhost:5000/api/users → lista con 2 usuarios seed
+GET http://localhost:5000/api/users → [{"id":1,"name":"Patricio Ibarra","email":"patricio@example.com"}, {"id":2,"name":"Natalia Rud","email":"natalia@example.com"}]
 
 ---
 
 VARIABLES DE ENTORNO:
 
-# Dentro de la red de Docker, la API se llama 'api' (host interno)
+# Dentro de la red de Docker, la API se llama 'api'
 API_URL=http://api:5000
 
-# Postgres usado por la API
+# Postgres (usado por la API)
 DB_USER=app
 DB_PASSWORD=app
 DB_NAME=referrals
 DB_HOST=db
 DB_PORT=5432
 
-# Redis (si más adelante lo usas activamente desde la API)
+# Redis (si se usa en el futuro)
 REDIS_HOST=redis
 
----
-
-.env (local, no subir credenciales reales)
-
-- Puedes dejarlo igual al ejemplo para usar host internos de Docker (api, db, redis).
-- Si prefieres probar fuera de Docker para algo puntual, puedes poner API_URL=http://localhost:5000.
+⚠️ Copia este archivo a .env antes de levantar el proyecto.
 
 ---
 
 COMANDOS ÚTILES:
 
-# Listar servicios/puertos/health
-docker compose ps
+Con Makefile ahora puedes usar atajos:
 
-# Logs generales o por servicio (últimos 2 minutos)
-docker compose logs -f
-docker compose logs -f api --since=2m
-docker compose logs -f web --since=2m
-docker compose logs -f db --since=2m
+| Comando           | Descripción                         |
+| ----------------- | ----------------------------------- |
+| `make up`         | Levanta todo                        |
+| `make build`      | Fuerza reconstrucción de imágenes   |
+| `make ps`         | Muestra estado / puertos            |
+| `make logs`       | Logs de todos los servicios         |
+| `make logs-api`   | Logs de la API                      |
+| `make logs-web`   | Logs de Nginx                       |
+| `make down`       | Detiene los contenedores            |
+| `make nuke`       | Elimina volúmenes y resetea DB      |
+| `make db-sh`      | Abre consola psql en Postgres       |
+| `make health`     | Testea /api/health vía Nginx        |
+| `make api-health` | Testea /api/health directo a la API |
 
-# Detener todo
-docker compose down
-
-Consultar DB (psql dentro del contenedor):
-docker compose exec db psql -U app -d referrals -c "select * from users;"
 
 ---
 
-RESEMBRAR LA BASE (si cambias db/init.sql)
+RESEMBRAR LA BASE
 
-docker-compose sólo aplica init.sql cuando el volumen de datos está vacío.
-Si editaste el seed y quieres reaplicarlo:
+Si cambias db/init.sql y quieres aplicar los nuevos datos:
 
-docker compose down -v     # elimina contenedores y volúmenes (incluye datos de Postgres)
-docker compose up -d db    # levanta DB y aplica init.sql
-docker compose up -d api web
+make nuke     # borra volúmenes y datos
+make up       # levanta todo (DB se re-semilla con init.sql)
 
 ---
 
 ESTRUCTURA DEL PROYECTO:
 
 Referral-Campaign-System/
-├─ backend/                # API Express
+├─ backend/
 │  ├─ server.js
 │  ├─ package.json
 │  └─ Dockerfile
 │
 ├─ db/
-│  └─ init.sql             # seed inicial (tabla users + 2 filas)
+│  └─ init.sql
 │
-├─ frontend/               # Nginx + HTML estático
+├─ frontend/
 │  ├─ index.html
-│  ├─ nginx.conf           # proxy /api → http://api:5000
+│  ├─ nginx.conf
 │  └─ Dockerfile
 │
-├─ .env                    # TU config local (no commitear credenciales)
-├─ .env.example            # ejemplo de variables para Docker
+├─ .env
+├─ .env.example
 ├─ docker-compose.yml
+├─ Makefile
 └─ README.md
 
 ---
 
 NOTAS:
 
-- Todo endpoint de la API debe vivir bajo /api/*.
-El reverse proxy de Nginx está configurado para eso (mejor práctica y evita colisiones con rutas estáticas).
-
-- La API también responde directo en :5000 (útil para debugging), pero la ruta sigue siendo /api/*.
-
-- Postgres viene con un seed mínimo de ejemplo en db/init.sql.
+- Todos los endpoints de la API deben vivir bajo /api/*.
+El proxy de Nginx está configurado para eso (mejor práctica y evita conflictos con archivos estáticos).
+- La API también responde directo en :5000 para debugging.
+- Postgres incluye un seed inicial (db/init.sql) con dos usuarios de ejemplo.
 
 ---
 
 Checklist de verificación rápida
 
- docker compose ps muestra healthy para api y db.
-
- GET http://localhost:3000/api/health → {"ok":true}
-
- GET http://localhost:3000/api/users → 2 usuarios seed
+- docker compose ps → healthy en api y db
+- GET http://localhost:3000/api/health → {"ok":true}
+- GET http://localhost:3000/api/users → dos usuarios semilla
 
 ---
 
 PRÓXIMOS PASOS SUGERIDOS:
 
-+ [ ] Añadir pgAdmin o Adminer para administrar PostgreSQL fácilmente.
-
----
-
-ÚLTIMA VERIFICACIÓN TÉCNICA:
-
-Todos los servicios saludables (`docker compose ps`)
-- Frontend → http://localhost:3000/
-- API → http://localhost:5000/api/*
-- DB → PostgreSQL 16 con seed inicial (tabla users)
-- Redis → operativo
++ [ ] Añadir pgAdmin (alternativa más completa a Adminer).
++ [ ] Implementar autenticación básica en la API.
++ [ ] Integrar pipeline mínima de CI/CD (GitHub Actions).
 
 ---
 
