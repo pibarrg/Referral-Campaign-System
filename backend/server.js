@@ -6,7 +6,7 @@ const app = express();
 
 // --- RUTAS PRIMERO ---
 
-// Healthcheck (lo usa Docker y tú)
+// Healthcheck
 app.get("/api/health", (_req, res) => res.json({ ok: true }));
 
 // Ping de prueba
@@ -14,14 +14,26 @@ app.get("/api/test", (_req, res) => {
   res.json({ message: "API funcionando" });
 });
 
-// DB (Postgres vía variables de entorno)
-const pool = new Pool({
-  user: process.env.DB_USER || "app",
-  password: process.env.DB_PASSWORD || "app",
-  host: process.env.DB_HOST || "db",
-  port: Number(process.env.DB_PORT || 5432),
-  database: process.env.DB_NAME || "referrals",
-});
+// Config DB:
+// - En Render usaremos DATABASE_URL (y opcional PGSSL=require).
+// - En local (Docker) seguimos con variables separadas.
+const hasDatabaseUrl = !!process.env.DATABASE_URL;
+
+const pool = hasDatabaseUrl
+  ? new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl:
+        process.env.PGSSL === "require"
+          ? { rejectUnauthorized: false }
+          : undefined,
+    })
+  : new Pool({
+      user: process.env.DB_USER || "app",
+      password: process.env.DB_PASSWORD || "app",
+      host: process.env.DB_HOST || "db",
+      port: Number(process.env.DB_PORT || 5432),
+      database: process.env.DB_NAME || "referrals",
+    });
 
 // Lista de usuarios
 app.get("/api/users", async (_req, res) => {
@@ -43,9 +55,10 @@ app.get("/", (_req, res) => {
     .send("API OK. Endpoints: /api/health, /api/test, /api/users");
 });
 
-// --- 404 SIEMPRE AL FINAL ---
+// 404 al final
 app.use((_req, res) => {
   res.status(404).json({ error: "not_found" });
 });
 
-app.listen(5000, () => console.log("API listening on :5000"));
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`API listening on :${PORT}`));
