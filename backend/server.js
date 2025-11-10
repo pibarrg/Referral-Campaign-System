@@ -5,6 +5,8 @@ const { Pool } = pkg;
 
 const app = express();
 
+app.use(express.json()); // ← para parsear JSON en POST
+
 // CORS (por ahora abierto; luego podemos restringir a tu dominio estático)
 app.use(cors({ origin: "*" }));
 
@@ -57,6 +59,71 @@ app.get("/", (_req, res) => {
   res
     .type("text/plain")
     .send("API OK. Endpoints: /api/health, /api/test, /api/users");
+});
+
+// Código de referido de un usuario (GET /api/referral-code/:userId)
+app.get("/api/referral-code/:userId", async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      "SELECT code FROM referral_codes WHERE user_id = $1",
+      [Number(req.params.userId)]
+    );
+    if (rows.length === 0) return res.status(404).json({ error: "not_found" });
+    res.json(rows[0]);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "db_error" });
+  }
+});
+
+// Crear un referido (POST /api/referrals)
+app.post("/api/referrals", async (req, res) => {
+  const { referrer_id, referred_name, referred_email } = req.body || {};
+  if (!referrer_id || !referred_email)
+    return res.status(400).json({ error: "missing_params" });
+
+  try {
+    // obtenemos el code del referrer
+    const { rows: rc } = await pool.query(
+      "SELECT code FROM referral_codes WHERE user_id = $1",
+      [Number(referrer_id)]
+    );
+    if (rc.length === 0) return res.status(400).json({ error: "no_code" });
+    const codeUsed = rc[0].code;
+
+    const { rows } = await pool.query(
+      `INSERT INTO referrals (referrer_id, referred_name, referred_email, code_used)
+       VALUES ($1,$2,$3,$4)
+       ON CONFLICT (referred_email) DO UPDATE SET referred_name = EXCLUDED.referred_name
+       RETURNING id, referrer_id, referred_name, referred_email, code_used, status, created_at`,
+      [Number(referrer_id), referred_name || null, referred_email, codeUsed]
+    );
+    res.status(201).json(rows[0]);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "db_error" });
+  }
+});
+
+// Listar referrals (GET /api/referrals?referrer_id=1 opcional)
+app.get("/api/referrals", async (req, res) => {
+  try {
+    const referrer = req.query.referrer_id ? Number(req.query.referrer_id) : null;
+    const q = referrer
+      ? `SELECT r.*, u.name AS referrer_name
+         FROM referrals r JOIN users u ON u.id = r.referrer_id
+         WHERE r.referrer_id = $1
+         ORDER BY r.id DESC`
+      : `SELECT r.*, u.name AS referrer_name
+         FROM referrals r JOIN users u ON u.id = r.referrer_id
+         ORDER BY r.id DESC`;
+    const params = referrer ? [referrer] : [];
+    const { rows } = await pool.query(q, params);
+    res.json(rows);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "db_error" });
+  }
 });
 
 // 404 al final
