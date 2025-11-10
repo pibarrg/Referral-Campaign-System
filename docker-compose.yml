@@ -1,4 +1,4 @@
-﻿services:
+services:
   api:
     build: ./backend
     ports:
@@ -12,7 +12,7 @@
     restart: unless-stopped
     healthcheck:
       # Healthcheck robusto usando wget (viene en Alpine)
-      test: ["CMD-SHELL", "wget -q --spider http://localhost:5000/api/health || exit 1"]
+      test: ["CMD-SHELL", "curl -fsS http://localhost:5000/api/health >NUL 2>&1 \|\| exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -51,6 +51,15 @@
     image: redis:7
     ports:
       - "6379:6379"
+    restart: unless-stopped
+
+  adminer:
+    image: adminer:4
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
     restart: unless-stopped
 
 volumes:
