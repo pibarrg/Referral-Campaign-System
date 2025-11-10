@@ -18,13 +18,13 @@ Stack mínimo para desarrollo local con **Docker Compose**:
 
 ## Arranque rápido
 
-# 1) (Primera vez) crear .env a partir del ejemplo
+1) (Primera vez) crear .env a partir del ejemplo
 cp .env.example .env
 
-# 2) Construir y levantar
+2) Construir y levantar
 make up
 
-# 3) Ver estado
+3) Ver estado
 make ps
 
 ---
