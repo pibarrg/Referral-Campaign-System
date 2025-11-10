@@ -23,12 +23,14 @@ API directa (modo desarrollo): http://localhost:5000
 ENDPOINTS DE PRUEBA:
 
 API directa (puerto 5000)
-- GET http://localhost:5000/health → {"ok":true}
-- GET http://localhost:5000/api/test → {"message":"API funcionando"}
++ GET http://localhost:5000/api/health → {"ok":true}
++ GET http://localhost:5000/api/test → {"message":"API funcionando"}
++ GET http://localhost:5000/api/users → [{"id":1,"name":"Patricio Ibarra","email":"patricio@example.com"}, {"id":2,"name":"Natalia Rud","email":"natalia@example.com"}]
 
 A través del frontend (puerto 3000)
-- GET http://localhost:3000/api/health → {"ok":true}
-- GET http://localhost:3000/api/test → {"message":"API funcionando"}
++ GET http://localhost:3000/api/health → {"ok":true}
++ GET http://localhost:3000/api/test → {"message":"API funcionando"}
++ GET http://localhost:3000/api/users → [{"id":1,"name":"Patricio Ibarra","email":"patricio@example.com"}, {"id":2,"name":"Natalia Rud","email":"natalia@example.com"}]
 
 ---
 
@@ -88,10 +90,18 @@ NOTAS:
 
 PRÓXIMOS PASOS SUGERIDOS:
 
-1. Agregar un .gitignore para excluir archivos innecesarios.
-2. Añadir healthchecks a docker-compose.yml.
-3. Crear una versión “production” (con puerto 80).
-4. Escribir un pequeño endpoint con persistencia PostgreSQL.
++ [ ] Crear un archivo .env.example con variables de entorno de referencia.
++ [ ] Añadir pgAdmin o Adminer para administrar PostgreSQL fácilmente.
+
+---
+
+ÚLTIMA VERIFICACIÓN TÉCNICA:
+
+Todos los servicios saludables (`docker compose ps`)
+- Frontend → http://localhost:3000/
+- API → http://localhost:5000/api/*
+- DB → PostgreSQL 16 con seed inicial (tabla users)
+- Redis → operativo
 
 ---
 
