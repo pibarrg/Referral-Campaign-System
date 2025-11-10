@@ -4,6 +4,9 @@ const { Pool } = pkg;
 
 const app = express();
 
+// CORS (por ahora abierto; luego podemos restringir a tu dominio estático)
+app.use(cors({ origin: "*" }));
+
 // --- RUTAS PRIMERO ---
 
 // Healthcheck
