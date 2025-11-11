@@ -1,79 +1,75 @@
 # Referral-Campaign-System
 
-Stack mínimo para desarrollo local con **Docker Compose**:
+Minimum local development stack with **Docker Compose**:
 
-- **API (Node/Express)** en `backend` (puerto 5000)
-- **Nginx (frontend estático + reverse proxy)** en `frontend` (puerto 3000)
-- **PostgreSQL 16** (puerto 5432) con seed inicial en `db/init.sql`
-- **Redis 7** (puerto 6379)
-
----
-
-## Requisitos
-
-- Docker Desktop instalado y funcionando
-- Make (viene incluido en macOS/Linux, en Windows está en Git Bash o WSL)
+- **API (Node/Express)** in `backend` (port 5000)
+- **Nginx (static frontend + reverse proxy)** in `frontend` (port 3000)
+- **PostgreSQL 16** (port 5432) with initial seed in `db/init.sql`
+- **Redis 7** (port 6379)
 
 ---
 
-## Arranque rápido
+## Requirements
 
-1) (Primera vez) crear .env a partir del ejemplo
-cp .env.example .env
-
-2) Construir y levantar
-make up
-
-3) Ver estado
-make ps
+- Docker Desktop installed and running
+- Make (included by default in macOS/Linux; on Windows available via Git Bash or WSL)
 
 ---
 
-URLs:
+## Quick Start
+
+1. (First time) create the `.env` file from the example:
+   cp .env.example .env
+
+2. Build and start everything:
+   make up
+
+3. Check status:
+   make ps
+
+---
+
+## URLs
 
 - Frontend: http://localhost:3000
-- API directa (para depurar): http://localhost:5000
+- Direct API (for debugging): http://localhost:5000
 
 ---
 
-ENDPOINTS DE PRUEBA:
+## Test Endpoints
 
-Vía Nginx (recomendado)
-
+Via Nginx (recommended):
 GET http://localhost:3000/api/health → {"ok":true}
-GET http://localhost:3000/api/test → {"message":"API funcionando"}
-GET http://localhost:3000/api/users → [{"id":1,"name":"Patricio Ibarra","email":"patricio@example.com"}, {"id":2,"name":"Natalia Rud","email":"natalia@example.com"}]
+GET http://localhost:3000/api/test → {"message":"API running"}
+GET http://localhost:3000/api/users → [{"id":1,"name":"Patricio Ibarra"}, {"id":2,"name":"Natalia Rud"}]
 
-API directa (útil para depurar)
-
+Direct API (debugging):
 GET http://localhost:5000/api/health → {"ok":true}
-GET http://localhost:5000/api/test → {"message":"API funcionando"}
-GET http://localhost:5000/api/users → [{"id":1,"name":"Patricio Ibarra","email":"patricio@example.com"}, {"id":2,"name":"Natalia Rud","email":"natalia@example.com"}]
+GET http://localhost:5000/api/test → {"message":"API running"}
+GET http://localhost:5000/api/users → [{"id":1,"name":"Patricio Ibarra"}, {"id":2,"name":"Natalia Rud"}]
 
 ---
 
-VARIABLES DE ENTORNO:
+## Environment Variables
 
-# Dentro de la red de Docker, la API se llama 'api'
+# Inside Docker’s network, the API is reachable as 'api'
 API_URL=http://api:5000
 
-# Postgres (usado por la API)
+# Postgres (used by the API)
 DB_USER=app
 DB_PASSWORD=app
 DB_NAME=referrals
 DB_HOST=db
 DB_PORT=5432
 
-# Redis (si se usa en el futuro)
+# Redis (if used in the future)
 REDIS_HOST=redis
-
-⚠️ Copia este archivo a .env antes de levantar el proyecto.
 
 ---
 
-COMANDOS ÚTILES:
+## Useful Commands
 
-Con Makefile ahora puedes usar atajos:
+With the Makefile you can use shortcuts:
 
 | Comando           | Descripción                         |
 | ----------------- | ----------------------------------- |
@@ -89,19 +85,18 @@ Con Makefile ahora puedes usar atajos:
 | `make health`     | Testea /api/health vía Nginx        |
 | `make api-health` | Testea /api/health directo a la API |
 
+---
+
+## Reseed the Database
+
+If you change db/init.sql and want to apply the updated seed:
+
+make nuke     # deletes volumes and data
+make up       # starts everything (DB is reseeded with init.sql)
 
 ---
 
-RESEMBRAR LA BASE
-
-Si cambias db/init.sql y quieres aplicar los nuevos datos:
-
-make nuke     # borra volúmenes y datos
-make up       # levanta todo (DB se re-semilla con init.sql)
-
----
-
-ESTRUCTURA DEL PROYECTO:
+## Project Structure
 
 Referral-Campaign-System/
 ├─ backend/
@@ -125,29 +120,29 @@ Referral-Campaign-System/
 
 ---
 
-NOTAS:
+## Notes
 
-- Todos los endpoints de la API deben vivir bajo /api/*.
-El proxy de Nginx está configurado para eso (mejor práctica y evita conflictos con archivos estáticos).
-- La API también responde directo en :5000 para debugging.
-- Postgres incluye un seed inicial (db/init.sql) con dos usuarios de ejemplo.
+- All API endpoints should live under /api/*.
+Nginx is configured to proxy those paths (best practice and avoids collisions with static files).
+- The API also responds directly on port 5000 for debugging.
+- Postgres includes an initial seed (db/init.sql) with two example users.
 
 ---
 
-Checklist de verificación rápida
+## Quick Verification Checklist
 
-- docker compose ps → healthy en api y db
+- docker compose ps → api and db should be healthy
 - GET http://localhost:3000/api/health → {"ok":true}
-- GET http://localhost:3000/api/users → dos usuarios semilla
+- GET http://localhost:3000/api/users → two seed users
 
 ---
 
-PRÓXIMOS PASOS SUGERIDOS:
+## Suggested Next Steps
 
-+ [ ] Añadir pgAdmin (alternativa más completa a Adminer).
-+ [ ] Implementar autenticación básica en la API.
-+ [ ] Integrar pipeline mínima de CI/CD (GitHub Actions).
++ [ ] Add pgAdmin (a more complete alternative to Adminer).
++ [ ] Implement basic authentication in the API.
++ [ ] Add a minimal CI/CD pipeline (GitHub Actions).
 
 ---
 
-© 2025 — Proyecto de base para desarrollo de sistemas de referidos.
+© 2025 — Base project for referral system development.
